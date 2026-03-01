@@ -21,16 +21,11 @@ Expected output
   - `State` — one of `Missing`, `Match`, or `Modified`
   - `ChangeLog` — list of property diffs (empty when `Match`)
 
-Example (trimmed)
+Run test 
 
 ```
-[{'CloudResourceItem': {'id': 'res-1', 'type': 'storage', 'properties': {...}},
-  'IacResourceItem': {'id': 'res-1', 'type': 'storage', 'properties': {...}},
-  'State': 'Modified',
-  'ChangeLog': [{'KeyName': 'size', 'CloudValue': '17kb', 'IacValue': '22kb'}, ...]
-},
- ...]
+python3 -m venv .venv # create venv
+source .venv/bin/activate # activate (zsh)
+pip install pytest
+pytest test_cloud_analyzer.py # run tests
 ```
-
-Usage as a module
-- Import `CloudToIacAnalyzer`, supply lists of `CloudResourceItem` and `IacResourceItem`, then call `analyze()` to get the report (list of dicts).

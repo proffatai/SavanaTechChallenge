@@ -1,0 +1,19 @@
+[
+    {
+        "id": "res-1",
+        "type": "storage",
+        "properties": {
+            "size": "17kb",
+            "tags": {
+                "totalAmount": "17kb"
+            }
+        }
+    },
+    {
+        "id": "res-2",
+        "type": "compute",
+        "properties": {
+            "instanceType": "t2.micro"
+        }
+    }
+]

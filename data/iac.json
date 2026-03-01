@@ -1,0 +1,12 @@
+[
+    {
+        "id": "res-1",
+        "type": "storage",
+        "properties": {
+            "size": "22kb",
+            "tags": {
+                "totalAmount": "22kb"
+            }
+        }
+    }
+]

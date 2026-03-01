@@ -1,48 +1,19 @@
 import json
 
-cloud_resources = [
-    {
-        "id": "res-1",
-        "type": "storage",
-        "properties": {
-            "size": "17kb",
-            "tags": {
-                "totalAmount": "17kb"
-            }
-        }
-    },
-    {
-        "id": "res-2",
-        "type": "compute",
-        "properties": {
-            "instanceType": "t2.micro"
-        }
-    }
-]
+
+def load_json_file(file_path: str) -> list:
+    with open(file_path, "r") as file:
+        return json.load(file)
 
 
-iac_resources = [
-    {
-        "id": "res-1",
-        "type": "storage",
-        "properties": {
-            "size": "22kb",
-            "tags": {
-                "totalAmount": "22kb"
-            }
-        }
-    }
-]
+def find_matching_iac_resource(cloud_resource: dict, iac_resources: list):
+    return next(
+        (iac for iac in iac_resources if iac["id"] == cloud_resource["id"]),
+        None
+    )
 
 
-
-def find_matching_iac_resource(cloud_resource, iac_resources):
-    for iac_resource in iac_resources:
-        if iac_resource["id"] == cloud_resource["id"]:
-            return iac_resource
-    return None
-
-def compare_properties(cloud_props, iac_props, parent_key=""):
+def compare_properties(cloud_props: dict, iac_props: dict, parent_key=""):
     change_log = []
     all_keys = set(cloud_props.keys()) | set(iac_props.keys())
 
@@ -50,17 +21,12 @@ def compare_properties(cloud_props, iac_props, parent_key=""):
         cloud_value = cloud_props.get(key)
         iac_value = iac_props.get(key)
 
-        if parent_key == "":
-            full_key = key
-        else:
-            full_key = parent_key + "." + key
-
+        full_key = f"{parent_key}.{key}" if parent_key else key
 
         if isinstance(cloud_value, dict) and isinstance(iac_value, dict):
-            nested_changes = compare_properties(cloud_value, iac_value, full_key)
-            change_log.extend(nested_changes)
-
-    
+            change_log.extend(
+                compare_properties(cloud_value, iac_value, full_key)
+            )
         elif cloud_value != iac_value:
             change_log.append({
                 "KeyName": full_key,
@@ -71,43 +37,29 @@ def compare_properties(cloud_props, iac_props, parent_key=""):
     return change_log
 
 
-
-def analyze_resources(cloud_resources, iac_resources):
-
+def analyze_resources(cloud_resources: list, iac_resources: list) -> list:
     report = []
 
     for cloud_resource in cloud_resources:
+        matching_iac = find_matching_iac_resource(
+            cloud_resource, iac_resources
+        )
 
-        matching_iac = find_matching_iac_resource(cloud_resource, iac_resources)
-
-      
         if matching_iac is None:
             state = "Missing"
             change_log = []
-
         else:
             change_log = compare_properties(
                 cloud_resource["properties"],
                 matching_iac["properties"]
             )
+            state = "Match" if not change_log else "Modified"
 
-            if len(change_log) == 0:
-                state = "Match"
-            else:
-                state = "Modified"
-
-        result = {
+        report.append({
             "CloudResourceItem": cloud_resource,
             "IacResourceItem": matching_iac,
             "State": state,
             "ChangeLog": change_log
-        }
-
-        report.append(result)
+        })
 
     return report
-
-
-analysis_result = analyze_resources(cloud_resources, iac_resources)
-
-print(json.dumps(analysis_result, indent=4))
