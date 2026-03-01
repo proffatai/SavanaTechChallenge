@@ -1,19 +1,13 @@
 import json
 
 
-def load_json_file(file_path: str) -> list:
+def load_json_file(file_path: str):
     with open(file_path, "r") as file:
         return json.load(file)
 
 
-def find_matching_iac_resource(cloud_resource: dict, iac_resources: list):
-    return next(
-        (iac for iac in iac_resources if iac["id"] == cloud_resource["id"]),
-        None
-    )
+def detect_property_drift(cloud_props,iac_props,parent_key=""):
 
-
-def compare_properties(cloud_props: dict, iac_props: dict, parent_key=""):
     change_log = []
     all_keys = set(cloud_props.keys()) | set(iac_props.keys())
 
@@ -25,7 +19,7 @@ def compare_properties(cloud_props: dict, iac_props: dict, parent_key=""):
 
         if isinstance(cloud_value, dict) and isinstance(iac_value, dict):
             change_log.extend(
-                compare_properties(cloud_value, iac_value, full_key)
+                detect_property_drift(cloud_value, iac_value, full_key)
             )
         elif cloud_value != iac_value:
             change_log.append({
@@ -37,22 +31,25 @@ def compare_properties(cloud_props: dict, iac_props: dict, parent_key=""):
     return change_log
 
 
-def analyze_resources(cloud_resources: list, iac_resources: list) -> list:
+def analyze_resources(cloud_resources,iac_resources) :
+
     report = []
 
+    iac_index = {r["id"]: r for r in iac_resources}
+
     for cloud_resource in cloud_resources:
-        matching_iac = find_matching_iac_resource(
-            cloud_resource, iac_resources
-        )
+        resource_id = cloud_resource.get("id")
+
+        matching_iac = iac_index.get(resource_id)
+
+        cloud_props = cloud_resource.get("properties", {})
+        iac_props = matching_iac.get("properties", {}) if matching_iac else {}
 
         if matching_iac is None:
             state = "Missing"
             change_log = []
         else:
-            change_log = compare_properties(
-                cloud_resource["properties"],
-                matching_iac["properties"]
-            )
+            change_log = detect_property_drift(cloud_props, iac_props)
             state = "Match" if not change_log else "Modified"
 
         report.append({
