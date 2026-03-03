@@ -29,12 +29,13 @@ Uses:
 python3 main.py --upload
 
 
- ## Docker
+Docker
 
  `docker build -t cloud-iac-analyzer .` #Build docker image
  `docker run cloud-iac-analyzer` #Run container
 
-## LocalStack + S3 Upload
+LocalStack + S3 Upload
+
 1. Start LocalStack with Docker Compose
 
 `docker compose up --build`
@@ -45,7 +46,7 @@ python3 main.py --upload
 2. Run analyzer and upload report
 `python3 main.py --upload`
 
-## Run Tests in virtual environment
+Run Tests in virtual environment
 python3 -m venv venv                    
 source venv/bin/activate
 pip install -r requirements.txt
