@@ -1,9 +1,9 @@
-from cloud_iac_analyzer import analyze_resources
+from cloud_iac_analyzer import analyze_resources, Resource
 
 
-def test_missing_resource():
-    cloud = [{"id": "res-1", "properties": {}}]
-    iac = []
+def test_missing_resource() -> None:
+    cloud: list[Resource] = [{"id": "res-1", "type": "compute", "properties": {}}]
+    iac: list[Resource] = []
 
     result = analyze_resources(cloud, iac)
 
@@ -11,9 +11,9 @@ def test_missing_resource():
     assert result[0]["ChangeLog"] == []
 
 
-def test_match_resource():
-    cloud = [{"id": "res-1", "properties": {"size": "10kb"}}]
-    iac = [{"id": "res-1", "properties": {"size": "10kb"}}]
+def test_match_resource() -> None:
+    cloud: list[Resource] = [{"id": "res-1", "type": "compute", "properties": {"size": "10kb"}}]
+    iac: list[Resource] = [{"id": "res-1", "type": "compute", "properties": {"size": "10kb"}}]
 
     result = analyze_resources(cloud, iac)
 
@@ -21,10 +21,11 @@ def test_match_resource():
     assert result[0]["ChangeLog"] == []
 
 
-def test_modified_nested_properties():
-    cloud = [
+def test_modified_nested_properties() -> None:
+    cloud: list[Resource] = [
         {
             "id": "res-1",
+            "type": "storage",
             "properties": {
                 "size": "17kb",
                 "tags": {
@@ -34,9 +35,10 @@ def test_modified_nested_properties():
         }
     ]
 
-    iac = [
+    iac: list[Resource] = [
         {
             "id": "res-1",
+            "type": "storage",
             "properties": {
                 "size": "22kb",
                 "tags": {
@@ -56,11 +58,45 @@ def test_modified_nested_properties():
     assert "tags.totalAmount" in keys
 
 
-def test_resource_without_properties():
-    cloud = [{"id": "res-1"}]
-    iac = [{"id": "res-1"}]
+def test_resource_without_properties() -> None:
+    cloud: list[Resource] = [{"id": "res-1", "type": "compute", "properties": {}}]
+    iac: list[Resource] = [{"id": "res-1", "type": "compute", "properties": {}}]
 
     result = analyze_resources(cloud, iac)
 
     assert result[0]["State"] == "Match"
     assert result[0]["ChangeLog"] == []
+
+
+def test_array_comparison() -> None:
+    """
+    Tests that array differences are detected correctly.
+    """
+    cloud: list[Resource] = [{
+        "id": "res-1",
+        "type": "security-group",
+        "properties": {
+            "rules": [
+                {"port": 80},
+                {"port": 443}
+            ]
+        }
+    }]
+
+    iac: list[Resource] = [{
+        "id": "res-1",
+        "type": "security-group",
+        "properties": {
+            "rules": [
+                {"port": 80},
+                {"port": 8080}
+            ]
+        }
+    }]
+
+    result = analyze_resources(cloud, iac)
+
+    assert result[0]["State"] == "Modified"
+
+    keys = {c["KeyName"] for c in result[0]["ChangeLog"]}
+    assert "rules[1].port" in keys

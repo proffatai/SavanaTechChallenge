@@ -1,0 +1,53 @@
+[
+    {
+        "CloudResourceItem": {
+            "id": "res-1",
+            "type": "storage",
+            "properties": {
+                "size": "17kb",
+                "tags": {
+                    "totalAmount": "17kb"
+                }
+            }
+        },
+        "IacResourceItem": {
+            "id": "res-1",
+            "type": "storage",
+            "properties": {
+                "size": "22kb",
+                "tags": {
+                    "totalAmount": "22kb"
+                }
+            }
+        },
+        "State": "Modified",
+        "ChangeLog": [
+            {
+                "KeyName": "size",
+                "CloudValue": "17kb",
+                "IacValue": "22kb"
+            },
+            {
+                "KeyName": "tags.totalAmount",
+                "CloudValue": "17kb",
+                "IacValue": "22kb"
+            }
+        ]
+    },
+    {
+        "CloudResourceItem": {
+            "id": "res-2",
+            "type": "compute",
+            "properties": {
+                "instanceType": "t2.micro"
+            }
+        },
+        "IacResourceItem": {
+            "id": "res-2",
+            "type": "",
+            "properties": {}
+        },
+        "State": "Missing",
+        "ChangeLog": []
+    }
+]
